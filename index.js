@@ -327,13 +327,15 @@ class WordPressSource {
 
 function ensureArrayData(url, data) {
   if (!Array.isArray(data)) {
+    // console.log(typeof data);
+    // console.log(data);
     try {
       data = JSON.parse(data)
     } catch (err) {
       throw new Error(
         `Failed to fetch ${url}\n` +
         `Expected JSON response but received:\n` +
-        `${data.trim().substring(0, 150)}...\n`
+        `${data.trim().substring((data.length - 1500), data.length)}...\n`
       )
     }
   }
