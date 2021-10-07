@@ -1,6 +1,6 @@
 {
   "name": "custom-gridsome-source-wordpress",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fork of gridsom-source-wordpress, need to debug it ",
   "main": "index.js",
   "scripts": {
