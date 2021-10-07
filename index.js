@@ -1,16 +1,14 @@
 const pMap = require('p-map')
 const axios = require('axios')
-const axiosRetry = require('axios-retry');
 const camelCase = require('camelcase')
 const { mapKeys, isPlainObject, trimEnd, trimStart } = require('lodash')
+const fetch = require('node-fetch');
 
 const TYPE_AUTHOR = 'author'
 const TYPE_ATTACHEMENT = 'attachment'
 
-
-
 class WordPressSource {
-  static defaultOptions() {
+  static defaultOptions () {
     return {
       baseUrl: '',
       apiBase: 'wp-json',
@@ -20,9 +18,9 @@ class WordPressSource {
     }
   }
 
-  constructor(api, options) {
+  constructor (api, options) {
     this.options = options
-    this.restBases = { posts: {}, taxonomies: {} }
+    this.restBases = { posts: {}, taxonomies: {}}
 
     if (!options.typeName) {
       throw new Error(`Missing typeName option.`)
@@ -39,18 +37,6 @@ class WordPressSource {
     this.client = axios.create({
       baseURL: `${baseUrl}/${options.apiBase}`
     })
-    axiosRetry(this.client, {
-      retries: 10,
-      retryDelay: (retryCount) => {
-        console.log(`retry attempt: ${retryCount}`);
-        return retryCount * 5000; // time interval between retries
-      },
-      retryCondition: (error) => {
-        // if retry condition is not specified, by default idempotent requests are retried
-        return true;
-      },
-    });
-    this.client.defaults.timeout = 10000;
 
     this.routes = this.options.routes || {}
 
@@ -67,10 +53,10 @@ class WordPressSource {
     })
   }
 
-  async getPostTypes(actions) {
-    const { data } = await this.fetch('wp/v2/types', {}, {})
+  async getPostTypes (actions) {
+    const res = await this.fetch('wp/v2/types', {}, {})
+    const data = await res.json();
     const addCollection = actions.addCollection || actions.addContentType
-
     for (const type in data) {
       const options = data[type]
 
@@ -83,8 +69,9 @@ class WordPressSource {
     }
   }
 
-  async getUsers(actions) {
-    const { data } = await this.fetch('wp/v2/users')
+  async getUsers (actions) {
+    const res = await this.fetch('wp/v2/users')
+    const data = await res.json();
     const addCollection = actions.addCollection || actions.addContentType
 
     const authors = addCollection({
@@ -105,8 +92,9 @@ class WordPressSource {
     }
   }
 
-  async getTaxonomies(actions) {
-    const { data } = await this.fetch('wp/v2/taxonomies', {}, {})
+  async getTaxonomies (actions) {
+    const res = await this.fetch('wp/v2/taxonomies')
+    const data = await res.json();
     const addCollection = actions.addCollection || actions.addContentType
 
     for (const type in data) {
@@ -133,7 +121,7 @@ class WordPressSource {
     }
   }
 
-  async getPosts(actions) {
+  async getPosts (actions) {
     const { createReference } = actions
     const getCollection = actions.getCollection || actions.getContentType
 
@@ -146,6 +134,7 @@ class WordPressSource {
       const posts = getCollection(typeName)
 
       const data = await this.fetchPaged(`wp/v2/${restBase}`)
+      
 
       for (const post of data) {
         const fields = this.normalizeFields(post)
@@ -175,13 +164,14 @@ class WordPressSource {
     }
   }
 
-  async getCustomEndpoints(actions) {
+  async getCustomEndpoints (actions) {
     for (const endpoint of this.customEndpoints) {
       const makeCollection = actions.addCollection || actions.addContentType
       const cepCollection = makeCollection({
         typeName: endpoint.typeName
       })
-      const { data } = await this.fetch(endpoint.route, {}, {})
+      const res = await this.fetch(endpoint.route, {}, {})
+      const data = await res.json();
       for (let item of data) {
         if (endpoint.normalize) {
           item = this.normalizeFields(item)
@@ -195,16 +185,15 @@ class WordPressSource {
     }
   }
 
-  async fetch(url, params = {}, fallbackData = []) {
+  async fetch (url, params = {}, fallbackData = []) {
     let res
-
+    const baseUrl = trimEnd(this.options.baseUrl, '/')
     try {
-      console.log('try  ' + url);
-      res = await this.client.request({ url, params })
-      // res = await axios.get('https://vdillyprod.tech/osezlavideo/admin/wp-json/' + url)
+      // res = await this.client.request({ url, params })
+      console.log(`${baseUrl}/${this.options.apiBase}/${url}?`+ new URLSearchParams(params))
+      res = await fetch(`${baseUrl}/${this.options.apiBase}/${url}?`+ new URLSearchParams(params))
     } catch ({ response, code, config }) {
       if (!response && code) {
-        console.log(response);
         throw new Error(`${code} - ${config.url}`)
       }
 
@@ -212,39 +201,41 @@ class WordPressSource {
         console.warn(`Error: Status ${response.status} - ${config.url}`)
         return { ...response, data: fallbackData }
       } else {
-        console.log(response);
         throw new Error(`${response.status} - ${config.url}`)
       }
     }
 
-    console.log('ok succeed ' + url)
-
     return res
   }
 
-  async fetchPaged(path) {
+  async fetchPaged (path) {
     const { perPage, concurrent } = this.options
 
     return new Promise(async (resolve, reject) => {
-      let res
+      let res, data;
 
       try {
         res = await this.fetch(path, { per_page: perPage })
+        data = await res.json();
       } catch (err) {
         return reject(err)
       }
 
-      const totalItems = parseInt(res.headers['x-wp-total'], 10)
-      const totalPages = parseInt(res.headers['x-wp-totalpages'], 10)
+      let totalItems = parseInt(res.headers['x-wp-total'], 10)
+      let totalPages = parseInt(res.headers['x-wp-totalpages'], 10)
+      res.headers.forEach(function (val, key) {
+        if (key.indexOf('x-wp-total') != -1) totalItems = val;
+        if (key.indexOf('x-wp-totalpages') != -1) totalPages = val;
+      });
 
       try {
-        res.data = ensureArrayData(path, res.data)
+        data = ensureArrayData(path, data)
       } catch (err) {
         return reject(err)
       }
 
       if (!totalItems || totalPages <= 1) {
-        return resolve(res.data)
+        return resolve(data)
       }
 
       const queue = []
@@ -255,18 +246,19 @@ class WordPressSource {
 
       await pMap(queue, async params => {
         try {
-          const { data } = await this.fetch(path, params)
-          res.data.push(...ensureArrayData(path, data))
+          const res2 = await this.fetch(path, params)
+          const data2 = await res2.json();
+          data.push(...ensureArrayData(path, data2))
         } catch (err) {
           console.log(err.message)
         }
       }, { concurrency: concurrent })
 
-      resolve(res.data)
+      resolve(data)
     })
   }
 
-  sanitizeCustomEndpoints() {
+  sanitizeCustomEndpoints () {
     if (!this.options.customEndpoints) return []
     if (!Array.isArray(this.options.customEndpoints)) throw Error('customEndpoints must be an array')
     this.options.customEndpoints.forEach(endpoint => {
@@ -280,7 +272,7 @@ class WordPressSource {
     return this.options.customEndpoints ? this.options.customEndpoints : []
   }
 
-  normalizeFields(fields) {
+  normalizeFields (fields) {
     const res = {}
 
     for (const key in fields) {
@@ -291,7 +283,7 @@ class WordPressSource {
     return res
   }
 
-  normalizeFieldValue(value) {
+  normalizeFieldValue (value) {
     if (value === null) return null
     if (value === undefined) return null
 
@@ -320,22 +312,20 @@ class WordPressSource {
     return value
   }
 
-  createTypeName(name = '') {
+  createTypeName (name = '') {
     return camelCase(`${this.options.typeName} ${name}`, { pascalCase: true })
   }
 }
 
-function ensureArrayData(url, data) {
+function ensureArrayData (url, data) {
   if (!Array.isArray(data)) {
-    // console.log(typeof data);
-    // console.log(data);
     try {
       data = JSON.parse(data)
     } catch (err) {
       throw new Error(
         `Failed to fetch ${url}\n` +
         `Expected JSON response but received:\n` +
-        `${data.trim().substring((data.length - 1500), data.length)}...\n`
+        `${data.trim().substring(0, 150)}...\n`
       )
     }
   }
