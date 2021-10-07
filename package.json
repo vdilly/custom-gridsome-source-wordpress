@@ -29,6 +29,7 @@
   "bundleDependencies": false,
   "dependencies": {
     "axios": "^0.19.0",
+    "axios-retry": "^3.2.0",
     "camelcase": "^5.0.0",
     "lodash": "^4.17.11",
     "p-map": "^1.2.0"
@@ -38,8 +39,7 @@
   "engines": {
     "node": ">=8.3"
   },
-  "gitHead": "d12b7db82ad5c818b3b1d5b46fdd67ecf48b4797",
-  "homepage": "https://github.com/gridsome/gridsome/tree/master/packages/source-wordpress#readme",
+  "homepage": "https://github.com/vdilly/custom-gridsome-source-wordpress#readme",
   "keywords": [
     "gridsome",
     "gridsome-plugin",
@@ -53,7 +53,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gridsome/gridsome/tree/master/packages/source-wordpress"
+    "url": "https://github.com/vdilly/custom-gridsome-source-wordpress"
   },
   "version": "0.5.3"
 }
