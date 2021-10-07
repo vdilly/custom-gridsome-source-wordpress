@@ -1,32 +1,15 @@
 {
-  "_from": "@gridsome/source-wordpress@0.5.3",
-  "_id": "@gridsome/source-wordpress@0.5.3",
-  "_inBundle": false,
-  "_integrity": "sha512-B/jGzve7d+QZtgHPv2CD1wk7AhhGyXM4Z4xHiseqYvLmgybFE+cAtzlLvp9zBZxLQO7UL/h6cnIrRQotHDjXAw==",
-  "_location": "/@gridsome/source-wordpress",
-  "_phantomChildren": {
-    "follow-redirects": "1.5.10"
+  "name": "custom-gridsome-source-wordpress",
+  "version": "1.0.0",
+  "description": "Fork of gridsom-source-wordpress, need to debug it ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "_requested": {
-    "type": "version",
-    "registry": true,
-    "raw": "@gridsome/source-wordpress@0.5.3",
-    "name": "@gridsome/source-wordpress",
-    "escapedName": "@gridsome%2fsource-wordpress",
-    "scope": "@gridsome",
-    "rawSpec": "0.5.3",
-    "saveSpec": null,
-    "fetchSpec": "0.5.3"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vdilly/custom-gridsome-source-wordpress.git"
   },
-  "_requiredBy": [
-    "#DEV:/",
-    "#USER"
-  ],
-  "_resolved": "https://registry.npmjs.org/@gridsome/source-wordpress/-/source-wordpress-0.5.3.tgz",
-  "_shasum": "92657a6045dc3a7469c2a853ec99ccdf1f11f057",
-  "_spec": "@gridsome/source-wordpress@0.5.3",
-  "_where": "C:\\wamp64\\www\\OLV\\front",
-  "bundleDependencies": false,
   "dependencies": {
     "axios": "^0.19.0",
     "axios-retry": "^3.2.0",
@@ -34,26 +17,10 @@
     "lodash": "^4.17.11",
     "p-map": "^1.2.0"
   },
-  "deprecated": false,
-  "description": "WordPress source for Gridsome",
-  "engines": {
-    "node": ">=8.3"
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vdilly/custom-gridsome-source-wordpress/issues"
   },
-  "homepage": "https://github.com/vdilly/custom-gridsome-source-wordpress#readme",
-  "keywords": [
-    "gridsome",
-    "gridsome-plugin",
-    "gridsome-source",
-    "wordpress"
-  ],
-  "main": "index.js",
-  "name": "@gridsome/source-wordpress",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/vdilly/custom-gridsome-source-wordpress"
-  },
-  "version": "0.5.3"
+  "homepage": "https://github.com/vdilly/custom-gridsome-source-wordpress#readme"
 }
