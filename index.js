@@ -43,7 +43,7 @@ class WordPressSource {
       retries: 3,
       retryDelay: (retryCount) => {
         console.log(`retry attempt: ${retryCount}`);
-        return retryCount * 500; // time interval between retries
+        return retryCount * 2000; // time interval between retries
       },
       retryCondition: (error) => {
         // if retry condition is not specified, by default idempotent requests are retried
