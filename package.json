@@ -11,7 +11,7 @@
     "url": "git+https://github.com/vdilly/custom-gridsome-source-wordpress.git"
   },
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.22.0",
     "axios-retry": "^3.2.0",
     "camelcase": "^5.0.0",
     "lodash": "^4.17.11",
