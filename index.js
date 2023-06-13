@@ -69,28 +69,48 @@ class WordPressSource {
     }
   }
 
-  async getUsers (actions) {
-    const res = await this.fetch('wp/v2/users')
-    const data = await res.json();
-    const addCollection = actions.addCollection || actions.addContentType
-
-    const authors = addCollection({
-      typeName: this.createTypeName(TYPE_AUTHOR),
-      route: this.routes.author
-    })
-
-    for (const author of data) {
-      const fields = this.normalizeFields(author)
-      const avatars = mapKeys(author.avatar_urls, (v, key) => `avatar${key}`)
-
-      authors.addNode({
-        ...fields,
-        id: author.id,
-        title: author.name,
-        avatars
-      })
+async getUsers(actions) {
+  try {
+    const res = await this.fetch('wp/v2/users');
+    
+    if (res.ok) {
+      const data = await res.json();
+      const addCollection = actions.addCollection || actions.addContentType;
+  
+      const authors = addCollection({
+        typeName: this.createTypeName(TYPE_AUTHOR),
+        route: this.routes.author
+      });
+  
+      for (const author of data) {
+        const fields = this.normalizeFields(author);
+        const avatars = mapKeys(author.avatar_urls, (v, key) => `avatar${key}`);
+  
+        authors.addNode({
+          ...fields,
+          id: author.id,
+          title: author.name,
+          avatars
+        });
+      }
+    } else {
+      // Handle the error response
+      if (res.status === 403) {
+        // Handle the 403 Forbidden error
+        console.log('Access to /users endpoint is forbidden.');
+        // You can choose to display an error message or take other actions here
+      } else {
+        // Handle other error cases
+        console.log('An error occurred:', res.status);
+        // Display a generic error message or take appropriate actions
+      }
     }
+  } catch (error) {
+    // Handle network or other errors
+    console.error('An error occurred:', error);
+    // Display a generic error message or take appropriate actions
   }
+}
 
   async getTaxonomies (actions) {
     const res = await this.fetch('wp/v2/taxonomies')
