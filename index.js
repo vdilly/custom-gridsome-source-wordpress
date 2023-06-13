@@ -8,7 +8,7 @@ const TYPE_AUTHOR = 'author'
 const TYPE_ATTACHEMENT = 'attachment'
 
 class WordPressSource {
-  static defaultOptions () {
+  static defaultOptions() {
     return {
       baseUrl: '',
       apiBase: 'wp-json',
@@ -18,9 +18,9 @@ class WordPressSource {
     }
   }
 
-  constructor (api, options) {
+  constructor(api, options) {
     this.options = options
-    this.restBases = { posts: {}, taxonomies: {}}
+    this.restBases = { posts: {}, taxonomies: {} }
 
     if (!options.typeName) {
       throw new Error(`Missing typeName option.`)
@@ -46,14 +46,14 @@ class WordPressSource {
       console.log(`Loading data from ${baseUrl}`)
 
       await this.getPostTypes(actions)
-      await this.getUsers(actions)
+      // await this.getUsers(actions)
       await this.getTaxonomies(actions)
       await this.getPosts(actions)
       await this.getCustomEndpoints(actions)
     })
   }
 
-  async getPostTypes (actions) {
+  async getPostTypes(actions) {
     const res = await this.fetch('wp/v2/types', {}, {})
     const data = await res.json();
     const addCollection = actions.addCollection || actions.addContentType
@@ -69,50 +69,50 @@ class WordPressSource {
     }
   }
 
-async getUsers(actions) {
-  try {
-    const res = await this.fetch('wp/v2/users');
-    
-    if (res.ok) {
-      const data = await res.json();
-      const addCollection = actions.addCollection || actions.addContentType;
-  
-      const authors = addCollection({
-        typeName: this.createTypeName(TYPE_AUTHOR),
-        route: this.routes.author
-      });
-  
-      for (const author of data) {
-        const fields = this.normalizeFields(author);
-        const avatars = mapKeys(author.avatar_urls, (v, key) => `avatar${key}`);
-  
-        authors.addNode({
-          ...fields,
-          id: author.id,
-          title: author.name,
-          avatars
-        });
-      }
-    } else {
-      // Handle the error response
-      if (res.status === 403) {
-        // Handle the 403 Forbidden error
-        console.log('Access to /users endpoint is forbidden.');
-        // You can choose to display an error message or take other actions here
-      } else {
-        // Handle other error cases
-        console.log('An error occurred:', res.status);
-        // Display a generic error message or take appropriate actions
-      }
-    }
-  } catch (error) {
-    // Handle network or other errors
-    console.error('An error occurred:', error);
-    // Display a generic error message or take appropriate actions
-  }
-}
+  async getUsers(actions) {
+    try {
+      const res = await this.fetch('wp/v2/users');
 
-  async getTaxonomies (actions) {
+      if (res.ok) {
+        const data = await res.json();
+        const addCollection = actions.addCollection || actions.addContentType;
+
+        const authors = addCollection({
+          typeName: this.createTypeName(TYPE_AUTHOR),
+          route: this.routes.author
+        });
+
+        for (const author of data) {
+          const fields = this.normalizeFields(author);
+          const avatars = mapKeys(author.avatar_urls, (v, key) => `avatar${key}`);
+
+          authors.addNode({
+            ...fields,
+            id: author.id,
+            title: author.name,
+            avatars
+          });
+        }
+      } else {
+        // Handle the error response
+        if (res.status === 403) {
+          // Handle the 403 Forbidden error
+          console.log('Access to /users endpoint is forbidden.');
+          // You can choose to display an error message or take other actions here
+        } else {
+          // Handle other error cases
+          console.log('An error occurred:', res.status);
+          // Display a generic error message or take appropriate actions
+        }
+      }
+    } catch (error) {
+      // Handle network or other errors
+      console.error('An error occurred:', error);
+      // Display a generic error message or take appropriate actions
+    }
+  }
+
+  async getTaxonomies(actions) {
     const res = await this.fetch('wp/v2/taxonomies')
     const data = await res.json();
     const addCollection = actions.addCollection || actions.addContentType
@@ -141,11 +141,11 @@ async getUsers(actions) {
     }
   }
 
-  async getPosts (actions) {
+  async getPosts(actions) {
     const { createReference } = actions
     const getCollection = actions.getCollection || actions.getContentType
 
-    const AUTHOR_TYPE_NAME = this.createTypeName(TYPE_AUTHOR)
+    // const AUTHOR_TYPE_NAME = this.createTypeName(TYPE_AUTHOR)
     const ATTACHEMENT_TYPE_NAME = this.createTypeName(TYPE_ATTACHEMENT)
 
     for (const type in this.restBases.posts) {
@@ -154,12 +154,12 @@ async getUsers(actions) {
       const posts = getCollection(typeName)
 
       const data = await this.fetchPaged(`wp/v2/${restBase}`)
-      
+
 
       for (const post of data) {
         const fields = this.normalizeFields(post)
 
-        fields.author = createReference(AUTHOR_TYPE_NAME, post.author || '0')
+        // fields.author = createReference(AUTHOR_TYPE_NAME, post.author || '0')
 
         if (post.type !== TYPE_ATTACHEMENT) {
           fields.featuredMedia = createReference(ATTACHEMENT_TYPE_NAME, post.featured_media)
@@ -184,7 +184,7 @@ async getUsers(actions) {
     }
   }
 
-  async getCustomEndpoints (actions) {
+  async getCustomEndpoints(actions) {
     for (const endpoint of this.customEndpoints) {
       const makeCollection = actions.addCollection || actions.addContentType
       const cepCollection = makeCollection({
@@ -205,13 +205,13 @@ async getUsers(actions) {
     }
   }
 
-  async fetch (url, params = {}, fallbackData = []) {
+  async fetch(url, params = {}, fallbackData = []) {
     let res
     const baseUrl = trimEnd(this.options.baseUrl, '/')
     try {
       // res = await this.client.request({ url, params })
-      console.log(`${baseUrl}/${this.options.apiBase}/${url}?`+ new URLSearchParams(params))
-      res = await fetch(`${baseUrl}/${this.options.apiBase}/${url}?`+ new URLSearchParams(params))
+      console.log(`${baseUrl}/${this.options.apiBase}/${url}?` + new URLSearchParams(params))
+      res = await fetch(`${baseUrl}/${this.options.apiBase}/${url}?` + new URLSearchParams(params))
     } catch ({ response, code, config }) {
       if (!response && code) {
         throw new Error(`${code} - ${config.url}`)
@@ -228,7 +228,7 @@ async getUsers(actions) {
     return res
   }
 
-  async fetchPaged (path) {
+  async fetchPaged(path) {
     const { perPage, concurrent } = this.options
 
     return new Promise(async (resolve, reject) => {
@@ -278,7 +278,7 @@ async getUsers(actions) {
     })
   }
 
-  sanitizeCustomEndpoints () {
+  sanitizeCustomEndpoints() {
     if (!this.options.customEndpoints) return []
     if (!Array.isArray(this.options.customEndpoints)) throw Error('customEndpoints must be an array')
     this.options.customEndpoints.forEach(endpoint => {
@@ -292,7 +292,7 @@ async getUsers(actions) {
     return this.options.customEndpoints ? this.options.customEndpoints : []
   }
 
-  normalizeFields (fields) {
+  normalizeFields(fields) {
     const res = {}
 
     for (const key in fields) {
@@ -303,7 +303,7 @@ async getUsers(actions) {
     return res
   }
 
-  normalizeFieldValue (value) {
+  normalizeFieldValue(value) {
     if (value === null) return null
     if (value === undefined) return null
 
@@ -332,12 +332,12 @@ async getUsers(actions) {
     return value
   }
 
-  createTypeName (name = '') {
+  createTypeName(name = '') {
     return camelCase(`${this.options.typeName} ${name}`, { pascalCase: true })
   }
 }
 
-function ensureArrayData (url, data) {
+function ensureArrayData(url, data) {
   if (!Array.isArray(data)) {
     try {
       data = JSON.parse(data)
